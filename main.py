@@ -37,15 +37,11 @@ class GridWorld:
                 self.rewards[state] = 0
         for terminal_state in self.terminal_states:
             self.rewards[terminal_state] = 1
-        # self.rewards = np.zeros((self.number_of_rows,
-        #                          self.number_of_columns,
-        #                          self.number_of_actions))
-        # for terminal_state in self.terminal_states:
-        #     row, column = terminal_state
-        #     self.rewards[row, column, :] = 1
-        self.policy = np.zeros((self.number_of_rows,
-                               self.number_of_columns,
-                               self.number_of_actions))
+        self.policy = {}
+        for row in range(self.number_of_rows):
+            for column in range(self.number_of_columns):
+                state = (row, column)
+                self.policy[state] = 0
         self.state_transitions = np.zeros((self.number_of_rows,
                                            self.number_of_columns,
                                            self.number_of_actions,
@@ -75,8 +71,8 @@ class GridWorld:
         for state in self.rewards:
             print(f"state: {state}  reward: {self.rewards[state]}.")
         print(f"Created equiprobable policy.")
-        # for policy in self.policy:
-        #     print(policy)
+        for state in self.policy:
+            print(f"state: {state} policy: {self.policy[state]}.")
         print(f"Created state transition function.")
         # for state_transition in self.state_transitions:
         #     print(state_transition)
