@@ -30,12 +30,19 @@ class GridWorld:
         self.obstacles = [(random.randint(0, self.grid_size[0] - 1), 
                     random.randint(0, self.grid_size[1] - 1)) for obstacle 
                     in range(self.number_of_obstacles)]
-        self.rewards = np.zeros((self.number_of_rows,
-                                 self.number_of_columns,
-                                 self.number_of_actions))
+        self.rewards = {}
+        for row in range(self.number_of_rows):
+            for column in range(self.number_of_columns):
+                state = (row, column)
+                self.rewards[state] = 0
         for terminal_state in self.terminal_states:
-            row, column = terminal_state
-            self.rewards[row, column, :] = 1
+            self.rewards[terminal_state] = 1
+        # self.rewards = np.zeros((self.number_of_rows,
+        #                          self.number_of_columns,
+        #                          self.number_of_actions))
+        # for terminal_state in self.terminal_states:
+        #     row, column = terminal_state
+        #     self.rewards[row, column, :] = 1
         self.policy = np.zeros((self.number_of_rows,
                                self.number_of_columns,
                                self.number_of_actions))
@@ -64,15 +71,15 @@ class GridWorld:
         print(f"Every state is equivalent & shares the same actions, for a total of {self.number_of_actions} actions per state.")
         print(f"Agent begins at {self.start_state} & terminates at {self.terminal_states}.")
         print(f"Created {self.number_of_obstacles} obstacles.")
-        print(f"Created rewards function:")
-        for reward in self.rewards:
-            print(reward)
-        print(f"Created equiprobable policy:")
-        for policy in self.policy:
-            print(policy)
-        print(f"Created state transition function:")
-        for state_transition in self.state_transitions:
-            print(state_transition)
+        print(f"Created rewards function.")
+        for state in self.rewards:
+            print(f"state: {state}  reward: {self.rewards[state]}.")
+        print(f"Created equiprobable policy.")
+        # for policy in self.policy:
+        #     print(policy)
+        print(f"Created state transition function.")
+        # for state_transition in self.state_transitions:
+        #     print(state_transition)
 
     def _valid_action(self, row: int, column: int) -> bool:
         """Check if action is valid."""
