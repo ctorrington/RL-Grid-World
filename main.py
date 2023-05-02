@@ -38,12 +38,20 @@ class GridWorld:
                 self.rewards[state] = 0
         for terminal_state in self.terminal_states:
             self.rewards[terminal_state] = 1
-        self.policy = {}
+        self.policy: dict[tuple[int, int], dict] = {}
         for row in range(self.number_of_rows):
             for column in range(self.number_of_columns):
                 state = (row, column)
-                self.policy[state] = 0
-        self.state_transition_probabilities = {}
+                self.policy[state] = {}
+                for action in range(self.number_of_actions):
+                    self.policy[state][action] = 1 / self.number_of_actions
+                
+        # self.policy: dict[tuple[int, int], int] = {}
+        # for row in range(self.number_of_rows):
+        #     for column in range(self.number_of_columns):
+        #         state = (row, column)
+        #         self.policy[state] = 0
+        self.state_transition_probabilities: dict[tuple[int, int], dict[int, dict[str, typing.Union[tuple[int, int], float]]]] = {}
         for row in range(self.number_of_rows):
             for column in range(self.number_of_columns):
                 state = (row, column)
@@ -70,22 +78,23 @@ class GridWorld:
         print(f"Agent begins at {self.start_state} & terminates "
               f"at {self.terminal_states}.")
         print(f"Created {self.number_of_obstacles} obstacles.")
-        print(f"Created rewards function.")
+        print(f"\nCreated rewards function.")
         for state in self.rewards:
             print(f"state: {state}  reward: {self.rewards[state]}.")
-        print(f"Created equiprobable policy.")
-        for state in self.policy:
-            print(f"state: {state} policy: {self.policy[state]}.")
-        print(f"Created state transition probability function.")
-
+        print(f"\nCreated equiprobable policy.")
+        for state, policy_dictionary in self.policy.items():
+            print(f"state {state}")
+            for action in policy_dictionary:
+                print(f"action {action} with probability {policy_dictionary[action]}")
+        print(f"\nCreated state transition probabilities.")
         for state, action_dictionary in self.state_transition_probabilities.items():
-            print(f"\nstate: {state}.")
+            print(f"state: {state}.")
             for action, state_transition_dictionary in action_dictionary.items():
                 print(f"action: {action}.")
                 next_state = state_transition_dictionary['next state']
                 probability = state_transition_dictionary['probability']
                 print(f"next state {next_state} with probability {probability}"
-                      f" & rewawrd {self.rewards[next_state]}.")
+                    f" & rewawrd {self.rewards[next_state]}.")
 
     def _valid_action(self, row: int, column: int) -> bool:
         """Check if action is valid."""
@@ -149,20 +158,32 @@ class GridWorld:
         else:
             return False
 
-
     def reset(self) -> None:
         """Reset environment to start state."""
 
         self.state = self.start_state
     
-    def bellman_equation_update_rule(self, ):
-        pass
-    
+    def bellman_equation_update_rule(self, state: tuple[int, int],
+                                     V: dict,
+                                     gamma: float = 1) -> float:
+        """Perform a bellman equation update for the state value function."""
+
+        for action in range(self.number_of_actions):
+            next_state = self._get_next_state(action, state)
+
+            policy_action = self.policy[state]
+            transition_probability = self.state_transition_probabilities[state][action]['probability']
+
+            next_state_reward = self.rewards[next_state]
+            next_state_value = V[next_state]
+
+        return 1
+
 
     def iterative_policy_evaluation(self, pi: dict, theta: float = 0.0001):
         """Iterative policy evaluation algorithm to find state-value function."""
 
-        # Initialise state-value function values to zero, 
+        # Initialise state-value function values (V) to zero, 
         # this can be done arbitrarily,
         # however, it is necessary for the terminal states to be zero, 
         # hence all states are set to zero.
@@ -174,15 +195,12 @@ class GridWorld:
 
         while True:
             delta = 0
-
             for row in range(self.grid_size[0]):
                 for column in range(self.grid_size[1]):
                     state = (row, column)
-
                     v = V[state]
-                    V[state] = self.bellman_equation_update_rule()
-
-
+                    V[state] = self.bellman_equation_update_rule(state, V)
+                    delta = max(delta, abs(v - V[state]))
             if delta < theta:
                 break
 
