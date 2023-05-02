@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import typing
+import math
 
 # This MDP is completely specified & so V* & Q* will be solved exactly 
 # with Dynamic Porgramming.
@@ -16,21 +17,25 @@ class GridWorld:
         """Initialize grid world environment."""
 
         # Create grid world environment
-        self.number_of_rows = 10
-        self.number_of_columns = 10
+        u = 30
+        l = 20
+        self.number_of_rows = random.randint(l, u)
+        self.number_of_columns = random.randint(l, u)
         self.grid_size = (self.number_of_rows, self.number_of_columns)
         self.number_of_states = self.number_of_rows * self.number_of_columns
         self.number_of_actions = 4
-        self.start_state = (0, 0)
+        self.start_state = (random.randint(0, self.number_of_rows - 1), random.randint(0, self.number_of_columns - 1))
         self.state = self.start_state
-        self.terminal_states = [(self.grid_size[0] - 1, self.grid_size[1] - 1)]
-        min_number_of_obstacles = 10
-        max_number_of_obstacles = 20
+        self.terminal_states = [(random.randint(0, self.number_of_rows - 1), random.randint(0, self.number_of_columns - 1))]
+        min_number_of_obstacles = math.floor(self.number_of_states * 0.1)
+        max_number_of_obstacles = math.floor(self.number_of_states * 0.2)
         self.number_of_obstacles = random.randint(min_number_of_obstacles,
                                                   max_number_of_obstacles)
-        self.obstacles = [(random.randint(0, self.grid_size[0] - 1), 
-                    random.randint(0, self.grid_size[1] - 1)) for obstacle 
-                    in range(self.number_of_obstacles)]
+        self.obstacles = []
+        for i in range(self.number_of_obstacles):
+            obstacle = (random.randint(0, self.number_of_rows - 1), random.randint(0, self.number_of_columns - 1))
+            if obstacle not in self.terminal_states and obstacle != self.start_state:
+                self.obstacles.append(obstacle)
         self.rewards = {}
         for row in range(self.number_of_rows):
             for column in range(self.number_of_columns):
@@ -103,10 +108,14 @@ class GridWorld:
             for column in range(self.number_of_columns):
                 grid[row][column] = self.value_function[(row, column)]
         for terminal_state in self.terminal_states:
-            grid[terminal_state] = 10
+            grid[terminal_state] = 1
         for obstacle in self.obstacles:
-            grid[obstacle] = -1
+            grid[obstacle] = 0
+            # plt.scatter(terminal_state[1], terminal_state[0], color='lightblue', s=100)
+        # plt.scatter(self.start_state[1], self.start_state[0], color='yellow', s=100)
+
         plt.imshow(grid, cmap='hot')
+        plt.colorbar()
         plt.show()
 
     def _valid_action(self, row: int, column: int) -> bool:
@@ -199,7 +208,7 @@ class GridWorld:
         return state_value
 
 
-    def iterative_policy_evaluation(self, theta: float = 0.02):
+    def iterative_policy_evaluation(self, theta: float = 0.01):
         """Iterative policy evaluation algorithm to find state-value function."""
 
         # Initialise state-value function values (V) to zero, 
@@ -219,7 +228,7 @@ class GridWorld:
                     state = (row, column)
                     v = V[state]
                     V[state] = self.bellman_equation_update_rule(state, V)
-                    print(f"updating state {state} value function to {V[state]}")
+                    # print(f"updating state {state} value function to {V[state]}")
                     delta = max(delta, abs(v - V[state]))
             if delta < theta:
                 break
