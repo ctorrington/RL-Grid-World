@@ -38,20 +38,14 @@ class GridWorld:
                 self.rewards[state] = 0
         for terminal_state in self.terminal_states:
             self.rewards[terminal_state] = 1
-        self.policy: dict[tuple[int, int], dict] = {}
+        self.policy: dict[tuple[int, int], dict[int, float]] = {}
         for row in range(self.number_of_rows):
             for column in range(self.number_of_columns):
                 state = (row, column)
                 self.policy[state] = {}
                 for action in range(self.number_of_actions):
                     self.policy[state][action] = 1 / self.number_of_actions
-                
-        # self.policy: dict[tuple[int, int], int] = {}
-        # for row in range(self.number_of_rows):
-        #     for column in range(self.number_of_columns):
-        #         state = (row, column)
-        #         self.policy[state] = 0
-        self.state_transition_probabilities: dict[tuple[int, int], dict[int, dict[str, typing.Union[tuple[int, int], float]]]] = {}
+        self.state_transition_probabilities = {}
         for row in range(self.number_of_rows):
             for column in range(self.number_of_columns):
                 state = (row, column)
@@ -62,8 +56,12 @@ class GridWorld:
                     self.state_transition_probabilities[state][action] = {
                         'next state': next_state,
                         'probability': probability}
+                    
+        self.value_function = {}
 
         self._print_environment()
+        self.iterative_policy_evaluation()
+        self.plot_grid_world()
 
     def _print_environment(self) -> None:
         """Print all the data related to the environment."""
@@ -95,6 +93,22 @@ class GridWorld:
                 probability = state_transition_dictionary['probability']
                 print(f"next state {next_state} with probability {probability}"
                     f" & rewawrd {self.rewards[next_state]}.")
+                
+    def plot_grid_world(self):
+        """Plot the value function for the GridWorld."""
+
+        # Plot grid world
+        grid = np.zeros(self.grid_size)
+        for terminal_state in self.terminal_states:
+            grid[terminal_state] = 1
+        for obstacle in self.obstacles:
+            grid[obstacle] = -1
+
+        for row in range(self.number_of_rows):
+            for column in range(self.number_of_columns):
+                grid[row][column] = self.value_function[(row, column)]
+        plt.imshow(grid, cmap='hot')
+        plt.show()
 
     def _valid_action(self, row: int, column: int) -> bool:
         """Check if action is valid."""
@@ -168,19 +182,23 @@ class GridWorld:
                                      gamma: float = 1) -> float:
         """Perform a bellman equation update for the state value function."""
 
+        state_value = 0
+
         for action in range(self.number_of_actions):
             next_state = self._get_next_state(action, state)
 
-            policy_action = self.policy[state]
+            policy_action_probability = self.policy[state][action]
             transition_probability = self.state_transition_probabilities[state][action]['probability']
 
             next_state_reward = self.rewards[next_state]
             next_state_value = V[next_state]
 
-        return 1
+            state_value += policy_action_probability * transition_probability * (next_state_reward + gamma  * next_state_value)
+
+        return state_value
 
 
-    def iterative_policy_evaluation(self, pi: dict, theta: float = 0.0001):
+    def iterative_policy_evaluation(self, theta: float = 0.02):
         """Iterative policy evaluation algorithm to find state-value function."""
 
         # Initialise state-value function values (V) to zero, 
@@ -200,20 +218,13 @@ class GridWorld:
                     state = (row, column)
                     v = V[state]
                     V[state] = self.bellman_equation_update_rule(state, V)
+                    print(f"updating state {state} value function to {V[state]}")
                     delta = max(delta, abs(v - V[state]))
             if delta < theta:
                 break
 
+        self.value_function = V
+
 if __name__ == '__main__': 
     
     environment = GridWorld()
-
-
-    # # Plot grid world
-    # grid = np.zeros(environment.grid_size)
-    # for terminal_state in environment.terminal_states:
-    #     grid[terminal_state] = 1
-    # for obstacle in environment.obstacles:
-    #     grid[obstacle] = -1
-    # plt.imshow(grid, cmap='gray')
-    # plt.show()
