@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import typing
 
 # This MDP is completely specified & so V* & Q* will be solved exactly 
 # with Dynamic Porgramming.
@@ -42,18 +43,17 @@ class GridWorld:
             for column in range(self.number_of_columns):
                 state = (row, column)
                 self.policy[state] = 0
-        self.state_transitions = np.zeros((self.number_of_rows,
-                                           self.number_of_columns,
-                                           self.number_of_actions,
-                                           self.number_of_rows,
-                                           self.number_of_columns))
+        self.state_transition_probabilities = {}
         for row in range(self.number_of_rows):
             for column in range(self.number_of_columns):
+                state = (row, column)
+                self.state_transition_probabilities[state] = {}
                 for action in range(self.number_of_actions):
-                    next_row, next_column = self._get_next_state(action)
-                    self.state_transitions[row, column, 
-                                           action, 
-                                           next_row, next_column] = 1
+                    next_state = self._get_next_state(action, state)
+                    probability = 1
+                    self.state_transition_probabilities[state][action] = {
+                        'next state': next_state,
+                        'probability': probability}
 
         self._print_environment()
 
@@ -62,10 +62,13 @@ class GridWorld:
 
         # np.set_printoptions(threshold=np.inf) # type: ignore
 
-        print(f"Initialised environment of size {self.number_of_rows} {self.number_of_columns}.")
+        print(f"Initialised environment of size "
+              f"{self.number_of_rows} {self.number_of_columns}.")
         print(f"Created {self.number_of_states} states.")
-        print(f"Every state is equivalent & shares the same actions, for a total of {self.number_of_actions} actions per state.")
-        print(f"Agent begins at {self.start_state} & terminates at {self.terminal_states}.")
+        print(f"Every state is equivalent & shares the same actions, "
+              f"for a total of {self.number_of_actions} actions per state.")
+        print(f"Agent begins at {self.start_state} & terminates "
+              f"at {self.terminal_states}.")
         print(f"Created {self.number_of_obstacles} obstacles.")
         print(f"Created rewards function.")
         for state in self.rewards:
@@ -73,9 +76,16 @@ class GridWorld:
         print(f"Created equiprobable policy.")
         for state in self.policy:
             print(f"state: {state} policy: {self.policy[state]}.")
-        print(f"Created state transition function.")
-        # for state_transition in self.state_transitions:
-        #     print(state_transition)
+        print(f"Created state transition probability function.")
+
+        for state, action_dictionary in self.state_transition_probabilities.items():
+            print(f"\nstate: {state}.")
+            for action, state_transition_dictionary in action_dictionary.items():
+                print(f"action: {action}.")
+                next_state = state_transition_dictionary['next state']
+                probability = state_transition_dictionary['probability']
+                print(f"next state {next_state} with probability {probability}"
+                      f" & rewawrd {self.rewards[next_state]}.")
 
     def _valid_action(self, row: int, column: int) -> bool:
         """Check if action is valid."""
@@ -93,12 +103,13 @@ class GridWorld:
         # Action is valid
         return True
 
-    def _get_next_state(self, action: int) -> tuple[int, int]:
+    def _get_next_state(self, action: int, 
+                        state: tuple[int, int]|None = None) -> tuple[int, int]:
         """Get the next state given an action."""
 
         # Get the current state
-        row, column = self.state
-
+        row, column = state or self.state
+        
         # Take action
         match action:
             case 0: # Up
@@ -127,15 +138,7 @@ class GridWorld:
         """Get reward for a given state."""
 
         # Get reward for state
-        match state:
-            case (row, column):
-                for row_, column_, reward in self.rewards:
-                    # Check if reward state
-                    if row == row_ and column == column_:
-                        return reward
-                return 0
-            case _: # Invalid state
-                raise ValueError(f"Invalid state: {state}")
+        return self.rewards[state]
             
     def _check_if_done(self, state: tuple[int, int]) -> bool:
         """Check if the episode is done."""
