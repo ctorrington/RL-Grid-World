@@ -99,14 +99,13 @@ class GridWorld:
 
         # Plot grid world
         grid = np.zeros(self.grid_size)
-        for terminal_state in self.terminal_states:
-            grid[terminal_state] = 1
-        for obstacle in self.obstacles:
-            grid[obstacle] = -1
-
         for row in range(self.number_of_rows):
             for column in range(self.number_of_columns):
                 grid[row][column] = self.value_function[(row, column)]
+        for terminal_state in self.terminal_states:
+            grid[terminal_state] = 10
+        for obstacle in self.obstacles:
+            grid[obstacle] = -1
         plt.imshow(grid, cmap='hot')
         plt.show()
 
@@ -122,6 +121,8 @@ class GridWorld:
             return False
         
         # TODO Check if obstacle
+        if (row, column) in self.obstacles:
+            return False
 
         # Action is valid
         return True
