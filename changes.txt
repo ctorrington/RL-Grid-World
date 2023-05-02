@@ -1,0 +1,8 @@
+commit 6c9b727
+I changed the policy function to a dictionary rather than a 3D numpy array.
+I used the numpy array because it was similar to a Tensorflow tensor, something
+that I'm vaguely familiar with. However, the numpy array was unecessarily large
+for the problem & a dictionary was better able to fit the structure. Now, 
+rather than having an array of shape [10, 10, 4], a dictionary maps each state
+to an action according to the policy. While is not identical to how it is done
+mathematically with sets, I do believe that it makes more sense programmaticaly.
