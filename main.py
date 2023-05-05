@@ -218,7 +218,7 @@ class GridWorld:
         return state_value
 
 
-    def iterative_policy_evaluation(self, theta: float = 0.1):
+    def iterative_policy_evaluation(self, theta: float = 0.001):
         """Evaluate the value function for every state in the state set
         following policy pi."""
 
@@ -228,9 +228,12 @@ class GridWorld:
         # hence all states are set to zero.
 
         print("Evaluating policy with iterative policy evaluation.")
-
+        
+        maximum_iterations = 1000
+        iteration = 0
+        
         while True:
-            delta = 0
+            delta = 0    
             for row in range(self.grid_size[0]):
                 for column in range(self.grid_size[1]):
                     state = (row, column)
@@ -238,6 +241,10 @@ class GridWorld:
                     self.value_function[state] = self.bellman_equation_update_rule(state)
                     # print(f"state value {self.value_function[state]}")
                     delta = max(delta, abs(v - self.value_function[state]))
+            iteration += 1
+            if iteration >= maximum_iterations:
+                print(f"Maximum iterations reached. Stopping with delta {delta}.")
+                break
             if delta < theta:
                 print(f"policy evaluation converged at {delta}.")
                 print("Starting Policy Improvement.")
@@ -249,7 +256,7 @@ class GridWorld:
         for state in self.value_function:
             print(f"{state} : {self.value_function[state]}")
 
-    def policy_improvement(self, gamma: float = 0.9):
+    def policy_improvement(self, gamma: float = 1):
         """Determine an improved policy pi' from the value function of the old
         policy pi."""
 
