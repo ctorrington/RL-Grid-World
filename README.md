@@ -10,5 +10,5 @@ This project, while simple, is meant to be perfectly accurate. Sound reasoning s
 be present for everything. Improvement iterations should be tracked - along with their
 reason.
 
-![https://github.com/ctorrington/RL-Grid-World/blob/main/images/example0.png?raw=true]
-1[https://github.com/ctorrington/RL-Grid-World/blob/main/images/example1.png?raw=true]
+![Grid world with initial value function & equiprobable policy](https://github.com/ctorrington/RL-Grid-World/blob/main/images/example0.png?raw=true)
+![Grid world with optimal value function & optimal policy](https://github.com/ctorrington/RL-Grid-World/blob/main/images/example1.png?raw=true)
