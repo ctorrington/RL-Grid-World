@@ -26,10 +26,8 @@ class GridWorld:
         self.grid_size = (self.number_of_rows, self.number_of_columns)
         self.number_of_states = self.number_of_rows * self.number_of_columns
         self.number_of_actions = 4
-        # self.start_state = (0, 0)
         self.start_state = (random.randint(0, self.number_of_rows - 1), random.randint(0, self.number_of_columns - 1))
         self.state = self.start_state
-        # self.terminal_states = [(self.number_of_rows - 1, self.number_of_columns - 1)]
         self.terminal_states = [(random.randint(0, self.number_of_rows - 1), random.randint(0, self.number_of_columns - 1))]
         min_number_of_obstacles = math.floor(self.number_of_states * 0.3)
         max_number_of_obstacles = math.floor(self.number_of_states * 0.5)
