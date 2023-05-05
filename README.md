@@ -9,3 +9,6 @@ so I want to have a proepr unstanding of the fundamentals beforehand.
 This project, while simple, is meant to be perfectly accurate. Sound reasoning should
 be present for everything. Improvement iterations should be tracked - along with their
 reason.
+
+![https://github.com/ctorrington/RL-Grid-World/blob/main/images/example0.png?raw=true]
+1[https://github.com/ctorrington/RL-Grid-World/blob/main/images/example1.png?raw=true]
