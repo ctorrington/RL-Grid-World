@@ -98,18 +98,22 @@ class GridWorld:
         """Plot the value function for the GridWorld."""
 
         fig, axes = plt.subplots(1, 2, figsize=(15, 5 * 2))
+        fig.suptitle("Grid World Value Function", fontsize=20)
+        # Plot the first & last value functions.
         for i, value_function in enumerate([self.value_function_history[0],
                                             self.value_function_history[-1]]):
             grid = np.zeros(self.grid_size)
             for row in range(self.number_of_rows):
                 for column in range(self.number_of_columns):
                     state = (row, column)
+                    # Set the value of the state to the value function.
                     grid[row][column] = value_function[state]
+                    # Set the value of the terminal states & obstacles.
                     for terminal_state in self.terminal_states:
                         grid[terminal_state] = 1
                     for obstacle in self.obstacles:
                         grid[obstacle] = -1
-
+                    # Set the arrow directions.
                     match self._get_policy_action(state):
                         case 0:
                             arrow_direction = (column, row - 1)
@@ -122,6 +126,7 @@ class GridWorld:
                         case _:
                             raise ValueError("Invalid action.")
                         
+                    # Check if the action is valid.
                     if state in self.terminal_states \
                         or state in self.obstacles \
                         or state == self.start_state \
@@ -129,13 +134,15 @@ class GridWorld:
                         or (self._get_state_value(state) == 0) \
                         or i == 0:
                             continue
+                    # Plot the arrows.
                     axes[i].annotate("", xy=arrow_direction,
                                         xytext=(column, row),
                                         arrowprops=dict(arrowstyle="->",
                                         color="black"),
                                         size=15)
+            # Plot the grid.
             axes[i].imshow(grid, vmin=-1, vmax=1)
-            
+
         axes[0].set_title("Policy & state values before Policy Evaluation")
         axes[1].set_title("Optimal Policy & Value Function")
         plt.show()
@@ -219,7 +226,7 @@ class GridWorld:
         """Get the action to take given the policy."""
 
         best_action = 0
-
+        # Get best action.
         for action in range(self.number_of_actions):
             if self.policy[state][action] > self.policy[state][best_action]:
                 best_action = action
@@ -251,13 +258,14 @@ class GridWorld:
         """Perform a bellman equation update for the state value function."""
 
         state_value = 0
-
+        # Iterate over all actions.
         for action in range(self.number_of_actions):
             next_state = self._get_next_state(action, state)
             policy_action_probability = self._get_policy_action_probability(state, action)
             transition_probability = self._get_state_transition_probability(state, action)
             next_state_reward = self._get_reward(next_state)
             next_state_value = self._get_state_value(next_state)
+            # Update state value.
             state_value += policy_action_probability * transition_probability * (next_state_reward + gamma * next_state_value)
 
         return state_value
@@ -269,19 +277,30 @@ class GridWorld:
         print("Evaluating policy with iterative policy evaluation.")
         self.value_function_history.append(copy.deepcopy(self.value_function))
         
+        # Iterate until convergence.
         while True:
             delta = 0
+            # Iterate over all states.
             for row in range(self.number_of_rows):
                 for column in range(self.number_of_columns):
                     state = (row, column)
+                    # Check if terminal state. NB: Terminal states are not updated.
                     if state in self.terminal_states:
                         continue
+                    # Save old state value.
                     old_state_value: dict = copy.deepcopy(self.value_function[state])
+
+                    # Update state value.
                     self.value_function[state] = self.bellman_equation_update_rule(state)
+
+                    # Get difference between old and new state value.
                     delta = max(delta, abs(old_state_value - self.value_function[state]))
+
+            # Check if converged.
             if delta < theta:
                 print(f"policy evaluation converged at {delta}.")
                 print("Starting Policy Improvement.")
+                # Save value function for plotting.
                 self.value_function_history.append(copy.deepcopy(self.value_function))
                 self.policy_improvement()
                 break
@@ -295,11 +314,13 @@ class GridWorld:
 
         policy_stable = True
 
+        # Iterate over all states.
         for row in range(self.number_of_rows):
             for column in range(self.number_of_columns):
                 state = (row, column)
 
                 action_values: list[float] = []
+                # Save old policy.
                 old_policy: dict = copy.deepcopy(self.policy[state])
 
                 # Get the value 
@@ -310,12 +331,14 @@ class GridWorld:
                     next_state_reward = self._get_reward(next_state)
                     next_state_value_function = self._get_state_value(next_state)
                     
+                    # Update action values.
                     action_values.append(transition_probability * (next_state_reward + gamma * next_state_value_function))
 
                 # Get the best action
                 best_action = np.argmax(action_values)
                 for action in range(self.number_of_actions):
                     if action == best_action:
+                        # Update policy.
                         self.policy[state][action] = 1 / len(action_values)
                     else:
                         self.policy[state][action] = 0
