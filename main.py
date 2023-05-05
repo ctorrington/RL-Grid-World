@@ -19,20 +19,20 @@ class GridWorld:
         """Initialize grid world environment."""
 
         # Create grid world environment
-        u = 20
-        l = 20
+        u = 25
+        l = 25
         self.number_of_rows = random.randint(l, u)
         self.number_of_columns = random.randint(l, u)
         self.grid_size = (self.number_of_rows, self.number_of_columns)
         self.number_of_states = self.number_of_rows * self.number_of_columns
         self.number_of_actions = 4
-        self.start_state = (0, 0)
-        # self.start_state = (random.randint(0, self.number_of_rows - 1), random.randint(0, self.number_of_columns - 1))
+        # self.start_state = (0, 0)
+        self.start_state = (random.randint(0, self.number_of_rows - 1), random.randint(0, self.number_of_columns - 1))
         self.state = self.start_state
-        self.terminal_states = [(self.number_of_rows - 1, self.number_of_columns - 1)]
-        # self.terminal_states = [(random.randint(0, self.number_of_rows - 1), random.randint(0, self.number_of_columns - 1))]
-        min_number_of_obstacles = math.floor(self.number_of_states * 0.1)
-        max_number_of_obstacles = math.floor(self.number_of_states * 0.2)
+        # self.terminal_states = [(self.number_of_rows - 1, self.number_of_columns - 1)]
+        self.terminal_states = [(random.randint(0, self.number_of_rows - 1), random.randint(0, self.number_of_columns - 1))]
+        min_number_of_obstacles = math.floor(self.number_of_states * 0.3)
+        max_number_of_obstacles = math.floor(self.number_of_states * 0.5)
         self.number_of_obstacles = random.randint(min_number_of_obstacles,
                                                   max_number_of_obstacles)
         self.obstacles = []
@@ -63,7 +63,7 @@ class GridWorld:
                 self.state_transition_probabilities[state] = {}
                 for action in range(self.number_of_actions):
                     next_state = self._get_next_state(action, state)
-                    if next_state == state:
+                    if next_state == state or next_state in self.obstacles:
                         probability = 0
                     else:
                         probability = 1
@@ -95,85 +95,51 @@ class GridWorld:
         print(f"Agent begins at {self.start_state} & terminates "
               f"at {self.terminal_states}.")
         print(f"Created {self.number_of_obstacles} obstacles.")
-        # print(f"\nCreated rewards function.")
-        # for state in self.rewards:
-        #     print(f"state: {state}  reward: {self.rewards[state]}.")
-        # print(f"\nCreated equiprobable policy.")
-        # for state, policy_dictionary in self.policy.items():
-        #     print(f"state {state}")
-        #     for action in policy_dictionary:
-        #         print(f"action {action} with probability {policy_dictionary[action]}")
-        # print(f"\nCreated state transition probabilities.")
-        # for state, action_dictionary in self.state_transition_probabilities.items():
-        #     print(f"state: {state}.")
-        #     for action, state_transition_dictionary in action_dictionary.items():
-        #         print(f"action: {action}.")
-        #         next_state = state_transition_dictionary['next state']
-        #         probability = state_transition_dictionary['probability']
-        #         print(f"next state {next_state} with probability {probability}"
-        #             f" & rewawrd {self.rewards[next_state]}.")
                 
     def plot_grid_world(self):
         """Plot the value function for the GridWorld."""
 
-        fig, ax = plt.subplots()
-        grid = np.zeros(self.grid_size)
-        for row in range(self.number_of_rows):
-            for column in range(self.number_of_columns):
-                state = (row, column)
-                grid[row][column] = self._get_state_value(state)
-                for terminal_state in self.terminal_states:
-                    grid[terminal_state] = 1
-                for obstacle in self.obstacles:
-                    grid[obstacle] = -1
-                match self._get_policy_action(state):
-                    case 0:
-                        arrow_direction = (column, row - 1)
-                    case 1:
-                        arrow_direction = (column - 1, row)
-                    case 2:
-                        arrow_direction = (column + 1, row)
-                    case 3:
-                        arrow_direction = (column, row + 1)
-                    case _:
-                        raise ValueError("Invalid action.")
-                print(f"{state} : {self._get_policy_action(state)}")
-                if state in self.terminal_states or state in self.obstacles or state == self.start_state:
-                    continue
-                ax.annotate("", xy=arrow_direction,
-                                    xytext=(column, row),
-                                    arrowprops=dict(arrowstyle="->",
-                                    color="black"),
-                                    size=15)
+        fig, axes = plt.subplots(1, 2, figsize=(15, 5 * 2))
+        for i, value_function in enumerate([self.value_function_history[0],
+                                            self.value_function_history[-1]]):
+            grid = np.zeros(self.grid_size)
+            for row in range(self.number_of_rows):
+                for column in range(self.number_of_columns):
+                    state = (row, column)
+                    grid[row][column] = value_function[state]
+                    for terminal_state in self.terminal_states:
+                        grid[terminal_state] = 1
+                    for obstacle in self.obstacles:
+                        grid[obstacle] = -1
 
-        ax.imshow(grid)
-        # for row in range(self.number_of_rows):
-        #     for column in range(self.number_of_columns):
-                
-        # ax.colorbar()
-
-        # if len(self.value_function_history) == 1:
-        #     for row in range(self.number_of_rows):
-        #         for column in range(self.number_of_columns):
-        #             grid[row][column] = self.value_function[(row, column)]
-        #             for terminal_state in self.terminal_states:
-        #                 grid[terminal_state] = 1
-        #             for obstacle in self.obstacles:
-        #                 grid[obstacle] = -1
-        #     plt.imshow(grid)
-        # else:
-        #     fig, axes = plt.subplots(1, len(self.value_function_history), figsize=(15, 5 * len(self.value_function_history)))
-        #     for i, value_function in enumerate(self.value_function_history):
-        #         for row in range(self.number_of_rows):
-        #             for column in range(self.number_of_columns):
-        #                 grid[row][column] = value_function[(row, column)]
-        #         for terminal_state in self.terminal_states:
-        #             grid[terminal_state] = 1
-        #         for obstacle in self.obstacles:
-        #             grid[obstacle] = -1
-
-        #         axes[i].imshow(grid)
-        #         axes[i].set_title("Policy Evaluation" if i % 2 == 0 else "Policy Improvement")
+                    match self._get_policy_action(state):
+                        case 0:
+                            arrow_direction = (column, row - 1)
+                        case 1:
+                            arrow_direction = (column - 1, row)
+                        case 2:
+                            arrow_direction = (column + 1, row)
+                        case 3:
+                            arrow_direction = (column, row + 1)
+                        case _:
+                            raise ValueError("Invalid action.")
+                        
+                    if state in self.terminal_states \
+                        or state in self.obstacles \
+                        or state == self.start_state \
+                        or (arrow_direction[1], arrow_direction[0]) in self.obstacles \
+                        or (self._get_state_value(state) == 0) \
+                        or i == 0:
+                            continue
+                    axes[i].annotate("", xy=arrow_direction,
+                                        xytext=(column, row),
+                                        arrowprops=dict(arrowstyle="->",
+                                        color="black"),
+                                        size=15)
+            axes[i].imshow(grid, vmin=-1, vmax=1)
+            
+        axes[0].set_title("Policy & state values before Policy Evaluation")
+        axes[1].set_title("Optimal Policy & Value Function")
         plt.show()
 
     def _valid_action(self, row: int, column: int) -> bool:
@@ -298,11 +264,12 @@ class GridWorld:
 
         return state_value
 
-    def iterative_policy_evaluation(self, theta: float = 1):
+    def iterative_policy_evaluation(self, theta: float = 0.00001):
         """Evaluate the value function for every state in the state set
         following policy pi."""
 
         print("Evaluating policy with iterative policy evaluation.")
+        self.value_function_history.append(copy.deepcopy(self.value_function))
         
         while True:
             delta = 0
