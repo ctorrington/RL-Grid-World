@@ -13,7 +13,7 @@ Reinforcement Learning Grid World Application.
 This project is a simple grid world application. It is meant to be a simple, yet accurate, implementation of reinforcement learning. It is meant to be a learning experience for myself, before I move onto approximation methods. 
 
 ## Installation
-This project is written in Python 3.9.1. It uses the following libraries:
+This project is written in Python 3.11.3. It uses the following libraries:
 - numpy
 - matplotlib
 
